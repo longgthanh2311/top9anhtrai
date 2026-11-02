@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f7f1">
+  <meta name="description" content="Chọn mùa Anh Trai Say Hi, chọn bias và tạo bảng Top 9 của riêng bạn.">
+  <title>Top 9 Say Hi — Gu của bạn, Top 9 của bạn</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f7f1;
+      --ink: #171815;
+      --muted: #73746f;
+      --line: #dedfd7;
+      --lime: #c4f76b;
+      --lime-strong: #a9e743;
+      --soft: #efefe8;
+      --orange: #e56c4b;
+      --shadow: 0 10px 28px rgba(27, 30, 20, .07);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(146, 202, 63, .8);
+      outline-offset: 2px;
+    }
+    .shell { width: min(1050px, calc(100% - 40px)); margin: 0 auto; }
+
+    .topbar {
+      height: 67px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      display: inline-flex; align-items: center; gap: 9px;
+      color: var(--ink); text-decoration: none; font-size: 17px;
+      font-weight: 850; letter-spacing: -.055em;
+    }
+    .save-state { color: var(--muted); font-size: 11px; }
+    .save-state::before {
+      content: ""; display: inline-block; width: 7px; height: 7px;
+      margin: 0 7px 1px 0; border-radius: 50%; background: #88c849;
+    }
+
+    .intro { padding: 27px 0 14px; }
+    .eyebrow { color: var(--muted); font-size: 11px; letter-spacing: .16em; }
+    h1 { margin: 9px 0 0; font-size: clamp(29px, 5vw, 42px); line-height: 1.08; letter-spacing: -.075em; }
+    .intro-copy { margin: 9px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+
+    .filter-row {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin: 20px 0 13px;
+    }
+    .filter-button {
+      min-height: 38px; padding: 0 16px; border: 1px solid transparent;
+      border-radius: 999px; background: #191a18; color: white; cursor: pointer;
+      font-size: 11px; font-weight: 750; transition: .15s ease;
+    }
+    .filter-button:hover { background: #383a35; }
+    .filter-button[aria-pressed="true"] { border-color: var(--ink); background: var(--lime); color: var(--ink); }
+    .selection-tools {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+      margin: 0 0 15px; color: var(--muted); font-size: 11px;
+    }
+    .toggle-wrap { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: var(--ink); }
+    .toggle-wrap input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .toggle-track {
+      position: relative; width: 38px; height: 22px; border-radius: 20px;
+      background: #d3d4ce; transition: background .17s ease;
+    }
+    .toggle-track::after {
+      content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+      border-radius: 50%; background: white; box-shadow: 0 1px 3px #0002; transition: transform .17s ease;
+    }
+    .toggle-wrap input:checked + .toggle-track { background: #9bd64e; }
+    .toggle-wrap input:checked + .toggle-track::after { transform: translateX(16px); }
+    .text-button { padding: 3px 0; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+    .text-button:hover { color: var(--ink); }
+
+    .season-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-bottom: 112px; }
+    .season-card {
+      position: relative; display: flex; min-height: 86px; flex-direction: column;
+      align-items: flex-start; justify-content: space-between; gap: 13px; padding: 14px;
+      border: 2px solid #252622; border-radius: 15px; background: transparent; text-align: left;
+      cursor: pointer; transition: background .14s ease, transform .14s ease, box-shadow .14s ease;
+    }
+    .season-card:hover { background: #fff; transform: translateY(-1px); }
+    .season-card[aria-pressed="true"] { background: #fff; box-shadow: 0 2px 0 rgba(26, 28, 24, .12); }
+    .season-card-name { padding-right: 28px; font-size: 14px; font-weight: 850; letter-spacing: -.035em; }
+    .season-card-count { color: var(--muted); font-size: 11px; }
+    .check-mark {
+      position: absolute; top: 12px; right: 12px; width: 21px; height: 21px;
+      display: grid; place-items: center; border: 1.5px solid var(--ink); border-radius: 50%;
+      background: var(--lime); color: var(--ink); font-size: 13px; font-weight: 900;
+    }
+    .season-card:not([aria-pressed="true"]) .check-mark { background: transparent; color: transparent; }
+
+    .bottom-bar {
+      position: fixed; z-index: 4; right: 0; bottom: 0; left: 0;
+      border-top: 1px solid var(--line); background: rgba(247, 247, 241, .96);
+      box-shadow: 0 -7px 25px rgba(24, 28, 18, .04); backdrop-filter: blur(12px);
+    }
+    .bottom-inner {
+      width: min(1050px, calc(100% - 40px)); min-height: 72px; display: flex;
+      align-items: center; justify-content: space-between; gap: 15px; margin: 0 auto;
+    }
+    .selection-summary { font-size: 15px; font-weight: 850; letter-spacing: -.035em; }
+    .selection-summary small { color: var(--muted); font-size: 11px; font-weight: 550; letter-spacing: 0; }
+    .primary-button {
+      min-height: 48px; padding: 0 21px; border: 0; border-radius: 13px;
+      background: #191a18; color: white; cursor: pointer; font-size: 12px; font-weight: 850;
+      transition: background .15s ease, transform .15s ease;
+    }
+    .primary-button:hover:not(:disabled) { background: #383a35; transform: translateY(-1px); }
+    .primary-button:disabled { background: #b7b9b1; cursor: default; }
+
+    .game-screen[hidden], .selection-screen[hidden] { display: none; }
+    .game-steps {
+      display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px;
+      padding: 18px 0 0;
+    }
+    .game-step {
+      position: relative; padding-top: 9px; border-top: 3px solid #e0e1d9;
+      color: #96978f; font-size: 9px; font-weight: 750; line-height: 1.3;
+    }
+    .game-step.active { border-color: var(--lime-strong); color: var(--ink); }
+    .game-step.done { border-color: #9dbb72; color: #74776d; }
+    .stage-card {
+      margin: 0 0 20px; padding: 19px; border: 1px solid var(--line);
+      border-radius: 16px; background: rgba(255,255,255,.55);
+    }
+    .stage-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 11px; }
+    .stage-card h2 { margin: 8px 0 5px; font-size: clamp(22px, 4vw, 29px); letter-spacing: -.06em; }
+    .stage-copy { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .round-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+    .round-member {
+      overflow: hidden; min-width: 0; padding: 0; border: 2px solid #292a26;
+      border-radius: 14px; background: white; text-align: left; cursor: pointer;
+      transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+    }
+    .round-member:hover { transform: translateY(-2px); }
+    .round-member.selected { border-color: #87b932; box-shadow: 0 0 0 2px #c4f76b; }
+    .round-member:disabled { opacity: .52; cursor: default; transform: none; }
+    .round-member img, .round-member .member-placeholder {
+      display: grid; width: 100%; aspect-ratio: 1.25 / 1; object-fit: cover;
+    }
+    .round-member .member-placeholder { place-items: center; background: #edf0e4; color: #718b48; font-size: 30px; font-weight: 900; }
+    .round-member-label { display: block; min-height: 36px; padding: 8px; font-size: 11px; font-weight: 850; line-height: 1.25; }
+    .stage-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 17px; }
+    .stage-selection-count { color: var(--muted); font-size: 11px; }
+    .stage-selection-count strong { color: var(--ink); }
+    .stage-continue { min-height: 42px; padding: 0 17px; border: 0; border-radius: 11px; background: var(--ink); color: white; cursor: pointer; font-size: 11px; font-weight: 850; }
+    .stage-continue:hover:not(:disabled) { background: #383a35; }
+    .stage-continue:disabled { background: #d6d7d0; color: #92938c; cursor: default; }
+    .duel-area { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 11px; margin-top: 19px; }
+    .duel-card {
+      display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; padding: 12px; border: 2px solid #272822; border-radius: 15px; background: white;
+      cursor: pointer; transition: .15s ease;
+    }
+    .duel-card:hover { border-color: #8dbd3f; background: #fafff0; transform: translateY(-2px); }
+    .duel-card img, .duel-initial { width: min(100%, 150px); aspect-ratio: 1 / 1; border-radius: 11px; object-fit: cover; background: #edf0e4; }
+    .duel-initial { display: grid; place-items: center; color: #718b48; font-size: 38px; font-weight: 900; }
+    .duel-name { font-size: clamp(12px, 2vw, 15px); font-weight: 850; text-align: center; }
+    .duel-vs { align-self: center; color: #95968f; font-size: 11px; font-weight: 900; }
+    .result-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0; }
+    .result-header h2 { margin: 0; font-size: 24px; letter-spacing: -.06em; }
+    .result-title-input { width: min(100%, 240px); min-height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; background: white; color: var(--ink); font-size: 12px; }
+    .result-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 13px; border: 1px solid var(--line); border-radius: 17px; background: white; }
+    .result-grid[data-count="9"] { grid-template-areas: "rank4 rank5 rank6" "rank2 rank1 rank3" "rank7 rank8 rank9"; }
+    .result-item { position: relative; overflow: hidden; border: 1px solid #e1e2db; border-radius: 12px; background: #fafaf6; text-align: center; }
+    .result-grid[data-count="9"] .result-item[data-rank="1"] { grid-area: rank1; }
+    .result-grid[data-count="9"] .result-item[data-rank="2"] { grid-area: rank2; }
+    .result-grid[data-count="9"] .result-item[data-rank="3"] { grid-area: rank3; }
+    .result-grid[data-count="9"] .result-item[data-rank="4"] { grid-area: rank4; }
+    .result-grid[data-count="9"] .result-item[data-rank="5"] { grid-area: rank5; }
+    .result-grid[data-count="9"] .result-item[data-rank="6"] { grid-area: rank6; }
+    .result-grid[data-count="9"] .result-item[data-rank="7"] { grid-area: rank7; }
+    .result-grid[data-count="9"] .result-item[data-rank="8"] { grid-area: rank8; }
+    .result-grid[data-count="9"] .result-item[data-rank="9"] { grid-area: rank9; }
+    .result-rank { position: absolute; z-index: 1; top: 6px; left: 6px; padding: 5px 9px; border-radius: 999px; background: white; color: var(--ink); font-size: 10px; font-weight: 850; }
+    .result-item[data-rank="1"] .result-rank { background: var(--lime); }
+    .result-item img, .result-initial { display: grid; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; }
+    .result-initial { place-items: center; background: #edf0e4; color: #718b48; font-size: 30px; font-weight: 900; }
+    .result-name { overflow: hidden; padding: 7px 4px 9px; font-size: 10px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+    .result-buttons { display: flex; justify-content: center; gap: 8px; margin: 14px 0 24px; }
+    .result-buttons button { min-height: 42px; padding: 0 15px; border: 1px solid var(--line); border-radius: 10px; background: white; cursor: pointer; font-size: 11px; font-weight: 800; }
+    .result-buttons button:hover { border-color: #8dbd3f; background: #f6fbe9; }
+    .game-heading {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 15px;
+      padding: 22px 0 15px;
+    }
+    .game-heading h1 { font-size: clamp(25px, 4vw, 34px); }
+    .back-button { padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: transparent; cursor: pointer; font-size: 11px; font-weight: 700; }
+    .back-button:hover { background: white; }
+    .game-season-label { margin-top: 6px; color: var(--muted); font-size: 11px; }
+    .game-layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 18px; align-items: start; padding-bottom: 35px; }
+
+    .ranking-panel { position: sticky; top: 12px; padding: 15px; }
+    .ranking-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .ranking-title { margin: 0; font-size: 15px; font-weight: 900; letter-spacing: -.045em; }
+    .rank-count { color: var(--muted); font-size: 10px; }
+    .rank-progress { overflow: hidden; height: 5px; margin: 11px 0 13px; border-radius: 9px; background: #e8e9e1; }
+    .rank-progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--lime-strong); transition: width .2s ease; }
+    .rank-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+    .rank-slot {
+      position: relative; display: flex; min-width: 0; aspect-ratio: 1 / 1;
+      flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      padding: 6px; border: 1px dashed #c9cbc1; border-radius: 12px; background: #f5f5ee;
+      text-align: center;
+    }
+    .rank-slot.filled { border-style: solid; border-color: #b7dc7e; background: white; }
+    .rank-number { position: absolute; top: 5px; left: 6px; color: #898b82; font-size: 9px; font-weight: 800; }
+    .rank-photo { width: 43px; height: 43px; border-radius: 50%; object-fit: cover; background: var(--soft); }
+    .rank-initials { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 50%; background: #eef0e5; color: #728c4a; font-size: 14px; font-weight: 900; }
+    .rank-name { overflow: hidden; max-width: 100%; font-size: 9px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+    .rank-placeholder { color: #a5a69f; font-size: 9px; }
+    .rank-actions { position: absolute; right: 3px; bottom: 3px; display: flex; gap: 1px; }
+    .rank-action { width: 19px; height: 19px; padding: 0; border: 0; border-radius: 6px; background: #f0f1e9; cursor: pointer; font-size: 11px; }
+    .rank-action:hover { background: var(--lime); }
+    .rank-action:disabled { opacity: .35; cursor: default; }
+    .ranking-actions { display: grid; gap: 7px; margin-top: 12px; }
+    .share-button { min-height: 42px; border: 0; border-radius: 10px; background: var(--lime); cursor: pointer; font-size: 11px; font-weight: 900; }
+    .share-button:hover:not(:disabled) { background: var(--lime-strong); }
+    .share-button:disabled { background: #e3e4dc; color: #96978f; cursor: default; }
+    .clear-button { min-height: 34px; border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; font-size: 10px; }
+    .clear-button:hover { background: white; color: var(--ink); }
+    .footnote { margin: 9px 0 0; color: var(--muted); font-size: 9px; line-height: 1.45; text-align: center; }
+    .toast {
+      position: fixed; z-index: 8; right: 16px; bottom: 88px; max-width: min(360px, calc(100% - 32px));
+      padding: 12px 15px; border: 1px solid #34362f; border-radius: 10px; background: #191a18;
+      color: white; box-shadow: var(--shadow); font-size: 12px; opacity: 0;
+      pointer-events: none; transform: translateY(8px); transition: .18s ease;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+    .footer { padding: 18px 0 24px; color: #85867f; font-size: 10px; text-align: center; }
+
+    @media (max-width: 760px) {
+      .shell, .bottom-inner { width: min(100% - 32px, 610px); }
+      .game-layout { grid-template-columns: 1fr; }
+      .ranking-panel { position: static; grid-row: 1; }
+      .rank-slot { aspect-ratio: 1.1 / 1; }
+    }
+    @media (max-width: 510px) {
+      .shell, .bottom-inner { width: calc(100% - 24px); }
+      .topbar { height: 58px; }
+      .brand { font-size: 15px; }
+      .save-state { font-size: 9px; }
+      .intro { padding-top: 22px; }
+      .filter-row { gap: 6px; }
+      .filter-button { min-height: 35px; padding: 0 12px; font-size: 10px; }
+      .selection-tools { gap: 10px; }
+      .season-grid { gap: 8px; }
+      .season-card { min-height: 78px; padding: 11px; border-radius: 13px; }
+      .season-card-name { font-size: 12px; }
+      .season-card-count { font-size: 10px; }
+      .bottom-inner { min-height: 65px; }
+      .selection-summary { font-size: 13px; }
+      .selection-summary small { font-size: 9px; }
+      .primary-button { min-height: 44px; padding: 0 15px; }
+      .game-heading { align-items: flex-start; }
+      .rank-photo, .rank-initials { width: 37px; height: 37px; }
+      .stage-card { padding: 13px; }
+      .round-grid { gap: 6px; }
+      .round-member { border-radius: 10px; }
+      .round-member-label { min-height: 31px; padding: 6px; font-size: 9px; }
+      .result-grid { gap: 6px; padding: 7px; }
+      .result-rank { font-size: 9px; }
+      .result-name { font-size: 9px; }
+      .result-header { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 360px) {
+      .season-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell topbar">
+    <a class="brand" href="#" id="home-link" aria-label="Top 9 Say Hi - về trang chọn mùa">
+      <span>Top 9 Say Hi</span>
+    </a>
+    <span class="save-state" id="save-state">Tự động lưu</span>
+  </header>
+
+  <main class="shell">
+    <section class="selection-screen" id="selection-screen">
+      <div class="intro">
+        <div class="eyebrow">CHỌN MÙA ANH TRAI</div>
+        <h1>Top 9 Say Hi</h1>
+        <p class="intro-copy">Chọn mùa bạn muốn chơi. Bạn có thể chọn một hoặc nhiều mùa cùng lúc.</p>
+      </div>
+      <div class="filter-row" id="season-filters" aria-label="Lọc mùa"></div>
+      <div class="selection-tools">
+        <label class="toggle-wrap">
+          <input id="alphabetical-toggle" type="checkbox">
+          <span class="toggle-track" aria-hidden="true"></span>
+          <span>Thứ tự A → Z</span>
+        </label>
+        <button class="text-button" id="select-all" type="button">Chọn tất cả</button>
+        <button class="text-button" id="clear-selection" type="button">Bỏ chọn</button>
+      </div>
+      <div class="season-grid" id="season-grid"></div>
+    </section>
+
+    <section class="game-screen" id="game-screen" hidden>
+      <nav class="game-steps" id="game-steps" aria-label="Các vòng chơi"></nav>
+      <div class="game-heading">
+        <div>
+          <div class="eyebrow">VÒNG CHƠI · TOP 9 SAY HI</div>
+          <h1 id="game-title">9 chọn 3</h1>
+          <div class="game-season-label" id="game-season-label"></div>
+        </div>
+        <button class="back-button" id="back-button" type="button">← Chọn mùa</button>
+      </div>
+
+      <section id="prelim-stage" class="stage-card" hidden>
+        <div class="stage-meta">
+          <span id="prelim-round-label">Vòng sơ tuyển 1/3</span>
+          <span id="prelim-board-label">1 / 1 lượt</span>
+        </div>
+        <h2 id="prelim-title">9 Anh Trai, chọn 3</h2>
+        <p class="stage-copy" id="prelim-copy">Chọn đúng 3 Anh Trai bạn muốn đưa tiếp vào vòng sau.</p>
+        <div class="round-grid" id="round-grid"></div>
+        <div class="stage-footer">
+          <span class="stage-selection-count" id="prelim-selection-count" aria-live="polite"></span>
+          <button class="stage-continue" id="prelim-next" type="button" disabled>Tiếp theo →</button>
+        </div>
+      </section>
+
+      <section id="ranking-stage" class="stage-card" hidden>
+        <div class="stage-meta"><span>VÒNG 03 · SO SÁNH THỨ HẠNG</span><span id="duel-count"></span></div>
+        <h2>Giữa hai Anh Trai, bạn chọn ai?</h2>
+        <p class="stage-copy">Chạm vào người bạn thích hơn. Lựa chọn của bạn sẽ quyết định thứ hạng trong Top 9.</p>
+        <div class="duel-area" id="duel-area"></div>
+        <div class="stage-footer">
+          <span class="stage-selection-count">Chọn một người để tiếp tục</span>
+          <button class="stage-continue" id="ranking-undo" type="button">← Hoàn tác lượt trước</button>
+        </div>
+      </section>
+
+      <section id="result-stage" hidden>
+        <div class="stage-meta"><span>VÒNG 05 · KẾT QUẢ</span><span>MY TOP 9 · SAY HI</span></div>
+        <div class="result-header">
+          <h2>Top 9 của bạn</h2>
+          <input class="result-title-input" id="result-title" type="text" maxlength="50" value="Top 9 Say Hi của tôi" aria-label="Tiêu đề bảng kết quả">
+        </div>
+        <div class="result-grid" id="result-grid"></div>
+        <div class="result-buttons">
+          <button id="restart-button" type="button">Tạo bảng mới</button>
+          <button id="share-button" type="button">Chia sẻ Top 9 ↗</button>
+        </div>
+      </section>
+
+    </section>
+  </main>
+  <footer class="shell footer">Một bảng xếp hạng nhỏ phi lợi nhuận cho fan</footer>
+  <div class="bottom-bar" id="bottom-bar">
+    <div class="bottom-inner">
+      <div class="selection-summary"><span id="selected-count">3 mùa</span><br><small id="selected-detail">30 Anh Trai có ảnh sẵn</small></div>
+      <button class="primary-button" id="start-button" type="button">Bắt đầu →</button>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const seasons = [
+      { id: "2024", name: "Anh Trai Say Hi 2024", members: 30 },
+      { id: "2025", name: "Anh Trai Say Hi 2025", members: 30 },
+      { id: "tinh-ha", name: "Tinh Hà SayHi", members: 24 }
+    ];
+
+    const season2024 = [
+      { id: "tage", name: "Tage", photo: "assets/2024/480490899_1203222588140865_3447950540835670544_n.jpg" },
+      { id: "hieuthuhai", name: "HIEUTHUHAI", photo: "assets/2024/480511562_1203222308140893_2547632285813876580_n.jpg" },
+      { id: "duong-domic", name: "Dương Domic", photo: "assets/2024/480698687_1203222511474206_3972674273711969939_n.jpg" },
+      { id: "quang-hung-masterd", name: "Quang Hùng MasterD", photo: "assets/2024/480727274_1203222531474204_1999625441099049635_n.jpg" },
+      { id: "hai-dang-doo", name: "Hải Đăng Doo", photo: "assets/2024/480761457_1203222508140873_3945001400031190018_n.jpg" },
+      { id: "anh-tu-atus", name: "Anh Tú Atus", photo: "assets/2024/480761830_1203222328140891_4157347732149722112_n.jpg" },
+      { id: "vu-thinh", name: "Vũ Thịnh", photo: "assets/2024/480762479_1203223538140770_4559162215802814135_n.jpg" },
+      { id: "negav", name: "Negav", photo: "assets/2024/480772995_1203222551474202_7918608388740128768_n.jpg" },
+      { id: "isaac", name: "Isaac", photo: "assets/2024/480775193_1203222574807533_2668081684795216711_n.jpg" },
+      { id: "gin-tuan-kiet", name: "Gin Tuấn Kiệt", photo: "assets/2024/480806707_1203222634807527_5743365854244452981_n.jpg" },
+      { id: "lou-hoang", name: "Lou Hoàng", photo: "assets/2024/480808276_1203222631474194_4289869144564854150_n.jpg" },
+      { id: "phap-kieu", name: "Pháp Kiều", photo: "assets/2024/480845137_1203222648140859_1836382550218048430_n.jpg" },
+      { id: "do-phu-qui", name: "Đỗ Phú Quí", photo: "assets/2024/480852085_1203222448140879_3948358394435636723_n.jpg" },
+      { id: "rhyder", name: "RHYDER", photo: "assets/2024/480852725_1203222654807525_9065899356659470529_n.jpg" },
+      { id: "hung-huynh", name: "Hùng Huỳnh", photo: "assets/2024/480856734_1203222514807539_569114625935454645_n.jpg" },
+      { id: "pham-anh-duy", name: "Phạm Anh Duy", photo: "assets/2024/480859325_1203222554807535_2724762705922069174_n.jpg" },
+      { id: "duc-phuc", name: "Đức Phúc", photo: "assets/2024/480869474_1203223548140769_932870299867224367_n.jpg" },
+      { id: "jsol", name: "JSOL", photo: "assets/2024/480944614_1203222524807538_6571694874729783271_n.jpg" },
+      { id: "cong-duong", name: "Công Dương", photo: "assets/2024/480968434_1203222484807542_2381009334202350181_n.jpg" },
+      { id: "song-luan", name: "Song Luân", photo: "assets/2024/480971391_1203222518140872_6114607350597459977_n.jpg" },
+      { id: "pham-dinh-thai-ngan", name: "Phạm Đình Thái Ngân", photo: "assets/2024/481057033_1203222561474201_3396937617681830917_n.jpg" },
+      { id: "wean", name: "WEAN", photo: "assets/2024/481109518_1203222544807536_395054625593535655_n.jpg" },
+      { id: "ali-hoang-duong", name: "Ali Hoàng Dương", photo: "assets/2024/481136330_1203222428140881_3095833073847317998_n.jpg" },
+      { id: "quan-ap", name: "Quân A.P", photo: "assets/2024/481166646_1203222351474222_3133532956248007797_n.jpg" },
+      { id: "erik", name: "ERIK", photo: "assets/2024/481240215_1203223584807432_4890637419035553858_n.jpg" },
+      { id: "anh-tu", name: "Anh Tú", photo: "assets/2024/481277293_1203222701474187_3500303117864559175_n.jpg" },
+      { id: "hurrykng", name: "HURRYKNG", photo: "assets/2024/481288415_1203222304807560_6206246846291000856_n.jpg" },
+      { id: "nicky", name: "Nicky", photo: "assets/2024/481296736_1203222738140850_529996424635160919_n.jpg" },
+      { id: "quang-trung", name: "Quang Trung", photo: "assets/2024/481498291_1203222521474205_6112102165499760471_n.jpg" },
+      { id: "captain", name: "Captain", photo: "assets/2024/481775711_1203222558140868_8011990115470067675_n.jpg" }
+    ];
+
+    const season2025 = [
+      { id: "2025-gill", name: "GILL", photo: "assets/2025/529693542_1342681904194932_7133517507690609058_n.jpg" },
+      { id: "2025-jey-b", name: "JEY B", photo: "assets/2025/529838152_1342772464185876_4896210287426495650_n.jpg" },
+      { id: "2025-nham-phuong-nam", name: "Nhâm Phương Nam", photo: "assets/2025/529948730_1342772387519217_8608856574669690500_n.jpg" },
+      { id: "2025-vuong-binh", name: "Vương Bình", photo: "assets/2025/530355598_1342583040871485_1563228553531825435_n.jpg" },
+      { id: "2025-negav", name: "NEGAV", photo: "assets/2025/530425905_1342681887528267_843036773408167262_n.jpg" },
+      { id: "2025-ryn-lee", name: "RYN LEE", photo: "assets/2025/530556455_1342634434199679_2284127753455107995_n.jpg" },
+      { id: "2025-mason-nguyen", name: "MASON NGUYỄN", photo: "assets/2025/530570467_1342681924194930_1708052729540839304_n.jpg" },
+      { id: "2025-karik", name: "KARIK", photo: "assets/2025/530583578_1342667254196397_3469250826554911675_n.jpg" },
+      { id: "2025-bui-truong-linh", name: "Bùi Trường Linh", photo: "assets/2025/530653051_1342583047538151_8809297601214630356_n.jpg" },
+      { id: "2025-b-ray", name: "B RAY", photo: "assets/2025/530703560_1342634430866346_9155390140527229565_n.jpg" },
+      { id: "2025-jaysonlei", name: "JaysonLei", photo: "assets/2025/530746249_1342681964194926_6956484913632574421_n.jpg" },
+      { id: "2025-phuc-du", name: "PHÚC DU", photo: "assets/2025/530789725_1342749034188219_4158735242317872706_n.jpg" },
+      { id: "2025-hustlang-robber", name: "HUSTLANG ROBBER", photo: "assets/2025/530796961_1342749010854888_5905609797141302718_n.jpg" },
+      { id: "2025-lohan", name: "LOHAN", photo: "assets/2025/530806476_1342730614190061_8872225619274790194_n.jpg" },
+      { id: "2025-ngo-kien-huy", name: "Ngô Kiến Huy", photo: "assets/2025/530924163_1342622064200916_1828509759396018986_n.jpg" },
+      { id: "2025-hai-nam", name: "Hải Nam", photo: "assets/2025/530995536_1342749067521549_1394005761773373909_n.jpg" },
+      { id: "2025-otis", name: "OTIS", photo: "assets/2025/531081438_1342749054188217_8166614325437059521_n.jpg" },
+      { id: "2025-thai-ngan", name: "Thái Ngân", photo: "assets/2025/531148234_1342681960861593_6435215768311744293_n.jpg" },
+      { id: "2025-bui-duy-ngoc", name: "Bùi Duy Ngọc", photo: "assets/2025/531300562_1342634484199674_3780918843335545698_n.jpg" },
+      { id: "2025-bigdaddy", name: "BIGDADDY", photo: "assets/2025/531365173_1342772414185881_8290076930780582365_n.jpg" },
+      { id: "2025-dillan-hoang-phan", name: "DILLAN HOÀNG PHAN", photo: "assets/2025/531401398_1342730567523399_6318764429538698595_n.jpg" },
+      { id: "2025-congb", name: "CONGB", photo: "assets/2025/531516061_1342730660856723_1742501703256320774_n.jpg" },
+      { id: "2025-son-k", name: "Sơn.K", photo: "assets/2025/531633439_1342730610856728_3049025080751120396_n.jpg" },
+      { id: "2025-cody-nam-vo", name: "Cody Nam Võ", photo: "assets/2025/532038270_1342582994204823_8349672547077189021_n.jpg" },
+      { id: "2025-rio", name: "RIO", photo: "assets/2025/532053071_1342582974204825_7947323843007350731_n.jpg" },
+      { id: "2025-ogenus", name: "OGENUS", photo: "assets/2025/532248833_1342748980854891_2499700944090665383_n.jpg" },
+      { id: "2025-do-nam-son", name: "Đỗ Nam Sơn", photo: "assets/2025/532391101_1342730657523390_5972631185987657086_n.jpg" },
+      { id: "2025-khoi-vu", name: "Khôi Vũ", photo: "assets/2025/532588468_1342634487533007_1435127514224904053_n.jpg" },
+      { id: "2025-tez", name: "TEZ", photo: "assets/2025/532668327_1342772460852543_422153134385075761_n.jpg" },
+      { id: "2025-vu-cat-tuong", name: "Vũ Cát Tường", photo: "assets/2025/532944938_1342772447519211_7267283600246007112_n.jpg" }
+    ];
+
+    const seasonTinhHa = [
+      { id: "tinh-ha-vuong-binh", name: "Vương Bình", photo: "assets/tinh-ha/708377258_122105907812633607_7991441886610243248_n.jpg" },
+      { id: "tinh-ha-captain-boy", name: "Captain Boy", photo: "assets/tinh-ha/708394645_122106080966633607_1450471720824930348_n.jpg" },
+      { id: "tinh-ha-song-luan", name: "Song Luân", photo: "assets/tinh-ha/708394913_122105896040633607_7613840842179800794_n.jpg" },
+      { id: "tinh-ha-coolkid", name: "Coolkid", photo: "assets/tinh-ha/708442449_122105895656633607_8784868080522379948_n.jpg" },
+      { id: "tinh-ha-wren-evans", name: "Wren Evans", photo: "assets/tinh-ha/708443032_122106081026633607_2593492744575473169_n.jpg" },
+      { id: "tinh-ha-dillan", name: "Dillan", photo: "assets/tinh-ha/708451081_122106079160633607_3104596054189473188_n.jpg" },
+      { id: "tinh-ha-son-k", name: "Sơn.K", photo: "assets/tinh-ha/708451306_122105896100633607_8668765327317167344_n.jpg" },
+      { id: "tinh-ha-duong-domic", name: "Dương Domic", photo: "assets/tinh-ha/708468935_122106066794633607_1599258235479671474_n.jpg" },
+      { id: "tinh-ha-wean", name: "WEAN", photo: "assets/tinh-ha/708504402_122106079238633607_3411681005291981634_n.jpg" },
+      { id: "tinh-ha-jaysonlei", name: "JaysonLei", photo: "assets/tinh-ha/709468059_122105895632633607_3337343562280174028_n.jpg" },
+      { id: "tinh-ha-congb", name: "CongB", photo: "assets/tinh-ha/709486370_122105896436633607_4224571331210985864_n.jpg" },
+      { id: "tinh-ha-ali-hoang-duong", name: "Ali Hoàng Dương", photo: "assets/tinh-ha/709590517_122106066698633607_3903263698864678063_n.jpg" },
+      { id: "tinh-ha-phap-kieu", name: "Pháp Kiều", photo: "assets/tinh-ha/709590759_122106066818633607_7576266489705812689_n.jpg" },
+      { id: "tinh-ha-jsol", name: "JSOL", photo: "assets/tinh-ha/709635805_122105896346633607_2395487729887477940_n.jpg" },
+      { id: "tinh-ha-the-thien", name: "Thế Thiên", photo: "assets/tinh-ha/709636564_122106081068633607_7884562743061469587_n.jpg" },
+      { id: "tinh-ha-hurrykng", name: "HURRYKNG", photo: "assets/tinh-ha/709637675_122105896400633607_5745428736185640715_n.jpg" },
+      { id: "tinh-ha-cody-nam-vo", name: "Cody Nam Võ", photo: "assets/tinh-ha/709646645_122105895602633607_2916943984521050995_n.jpg" },
+      { id: "tinh-ha-quang-hung-masterd", name: "Quang Hùng MasterD", photo: "assets/tinh-ha/709670189_122105895542633607_4505727628809269644_n.jpg" },
+      { id: "tinh-ha-kimlong", name: "KimLong", photo: "assets/tinh-ha/709679868_122106079280633607_8679928045935154757_n.jpg" },
+      { id: "tinh-ha-xuan-dinh-ky", name: "Xuân Định Kỳ", photo: "assets/tinh-ha/709679958_122106079196633607_2139193971917100336_n.jpg" },
+      { id: "tinh-ha-ivan", name: "IVAN", photo: "assets/tinh-ha/709689095_122106081086633607_3491577063268046073_n.jpg" },
+      { id: "tinh-ha-dang-hong-hai", name: "Đặng Hồng Hải", photo: "assets/tinh-ha/709821474_122106082796633607_4138745847644915307_n.jpg" },
+      { id: "tinh-ha-bui-truong-linh", name: "Bùi Trường Linh", photo: "assets/tinh-ha/709882831_122105896010633607_8971603352365041002_n.jpg" },
+      { id: "tinh-ha-hyo", name: "HYO", photo: "assets/tinh-ha/710782181_122105896064633607_9222387278470293852_n.jpg" }
+    ];
+
+    const seasonMembers = {
+      "2024": season2024,
+      "2025": season2025,
+      "tinh-ha": seasonTinhHa
+    };
+
+    const storageKey = "top9-sayhi-v3";
+    const seasonIds = seasons.map((season) => season.id);
+    const blankState = () => ({
+      selectedSeasons: [...seasonIds],
+      customMembers: { "2024": [], "2025": [], "tinh-ha": [] },
+      game: null
+    });
+    const gameStages = ["prelim", "ranking", "result"];
+    let state = blankState();
+    let activeFilter = "all";
+    let alphabetical = false;
+    let gameStarted = false;
+    let toastTimer;
+
+    const $ = (selector) => document.querySelector(selector);
+    const toast = $("#toast");
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("visible");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("visible"), 2500);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[character]);
+    }
+
+    function initials(name) {
+      return name.trim().split(/\s+/).slice(-2).map((part) => part[0] || "").join("").toUpperCase();
+    }
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(storageKey) || localStorage.getItem("top9-sayhi-v2");
+        if (!saved) return;
+        const parsed = JSON.parse(saved);
+        if (!parsed || typeof parsed !== "object") throw new Error("Dữ liệu lưu không hợp lệ");
+        const next = blankState();
+        if (Array.isArray(parsed.selectedSeasons)) {
+          next.selectedSeasons = [...new Set(parsed.selectedSeasons.filter((id) => seasonIds.includes(id)))];
+        }
+        for (const season of seasons) {
+          const custom = parsed.customMembers && Array.isArray(parsed.customMembers[season.id])
+            ? parsed.customMembers[season.id] : [];
+          next.customMembers[season.id] = custom.filter((member) =>
+            member && typeof member.id === "string" && typeof member.name === "string"
+          );
+        }
+        if (parsed.game && gameStages.includes(parsed.game.stage) && Array.isArray(parsed.game.allIds)) {
+          next.game = parsed.game;
+        }
+        state = next;
+        if (state.game && state.game.allIds.length !== currentMembers().length) state.game = null;
+        gameStarted = Boolean(state.game);
+      } catch (error) {
+        console.error("Không thể đọc dữ liệu đã lưu.", error);
+        showToast("Không đọc được dữ liệu đã lưu; trang đang mở với cài đặt mới.");
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+        $("#save-state").textContent = "Tự động lưu";
+      } catch (error) {
+        console.error("Không thể lưu tiến trình Top 9.", error);
+        $("#save-state").textContent = "Chưa lưu được";
+        showToast("Trình duyệt không thể lưu thay đổi. Hãy kiểm tra quyền lưu dữ liệu.");
+      }
+    }
+
+    function seasonLabel(id) {
+      return seasons.find((season) => season.id === id)?.name || id;
+    }
+
+    function currentMembers() {
+      const members = [];
+      for (const seasonId of state.selectedSeasons) {
+        members.push(...seasonMembers[seasonId], ...state.customMembers[seasonId]);
+      }
+      return members;
+    }
+
+    function memberMap() {
+      return new Map(currentMembers().map((member) => [member.id, member]));
+    }
+
+    function chunks(values, size) {
+      const result = [];
+      for (let index = 0; index < values.length; index += size) result.push(values.slice(index, index + size));
+      return result;
+    }
+
+    function shuffle(values) {
+      const result = values.slice();
+      for (let index = result.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+      }
+      return result;
+    }
+
+    function startRanking(ids) {
+      state.game.stage = "ranking";
+      state.game.finalistIds = ids.slice();
+      state.game.sort = {
+        runs: ids.map((id) => [id]),
+        nextRuns: [],
+        pairIndex: 0,
+        merge: null,
+        comparisons: 0,
+        history: []
+      };
+      if (ids.length <= 1) {
+        state.game.rankedIds = ids.slice();
+        state.game.stage = "result";
+      }
+    }
+
+    function startGame() {
+      if (state.selectedSeasons.length === 0) return;
+      const ids = shuffle(currentMembers().map((member) => member.id));
+      if (ids.length === 0) {
+        showToast("Mùa bạn chọn chưa có thành viên. Hãy thêm Anh Trai trước khi bắt đầu.");
+        return;
+      }
+      state.game = {
+        seasonIds: state.selectedSeasons.slice(),
+        allIds: ids,
+        stage: "ranking",
+        round: 1,
+        boardIndex: 0,
+        boards: [],
+        candidates: ids.slice(),
+        winners: [],
+        boardSelection: [],
+        finalistIds: [],
+        rankedIds: [],
+        resultTitle: "Top 9 Say Hi của tôi",
+        sort: null
+      };
+      gameStarted = true;
+      if (ids.length <= 9) startRanking(ids);
+      else {
+        state.game.stage = "prelim";
+        state.game.boards = chunks(ids, 9);
+      }
+      render();
+      saveState();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function getRequiredPicks(board) {
+      return Math.min(3, board.length);
+    }
+
+    function progressGame() {
+      const game = state.game;
+      const board = game.boards[game.boardIndex];
+      game.winners.push(...game.boardSelection);
+      game.boardSelection = [];
+      game.boardIndex += 1;
+      if (game.boardIndex < game.boards.length) return;
+
+      if (game.round < 3 && game.winners.length > 0) {
+        game.round += 1;
+        game.candidates = game.winners.slice();
+        game.winners = [];
+        game.boards = chunks(game.candidates, 9);
+        game.boardIndex = 0;
+        return;
+      }
+
+      const target = Math.min(9, game.allIds.length);
+      const finalistIds = game.winners.slice(0, target);
+      if (finalistIds.length < target) {
+        const finalistSet = new Set(finalistIds);
+        const remaining = shuffle(game.allIds.filter((id) => !finalistSet.has(id)));
+        finalistIds.push(...remaining.slice(0, target - finalistIds.length));
+      }
+      startRanking(finalistIds);
+    }
+
+    function renderFilters() {
+      const filters = [{ id: "all", name: "Tất cả" }, ...seasons];
+      $("#season-filters").innerHTML = filters.map((filter) =>
+        `<button type="button" class="filter-button" data-filter="${filter.id}" aria-pressed="${activeFilter === filter.id}">${escapeHtml(filter.name)}</button>`
+      ).join("");
+    }
+
+    function renderSeasonCards() {
+      let visibleSeasons = activeFilter === "all"
+        ? seasons.slice()
+        : seasons.filter((season) => season.id === activeFilter);
+      if (alphabetical) visibleSeasons.sort((a, b) => a.name.localeCompare(b.name, "vi"));
+      $("#season-grid").innerHTML = visibleSeasons.map((season) => {
+        const selected = state.selectedSeasons.includes(season.id);
+        const total = season.members + state.customMembers[season.id].length;
+        const countLabel = total === 0
+          ? "Thêm thành viên để chơi"
+          : `${total} thành viên`;
+        return `<button type="button" class="season-card" data-season="${season.id}" aria-pressed="${selected}">
+          <span class="season-card-name">${escapeHtml(season.name)}</span>
+          <span class="season-card-count">${escapeHtml(countLabel)}</span>
+          <span class="check-mark" aria-hidden="true">✓</span>
+        </button>`;
+      }).join("");
+      const selectedCount = state.selectedSeasons.length;
+      const selectedMembers = state.selectedSeasons.reduce(
+        (total, id) => total + seasonMembers[id].length, 0
+      );
+      const customCount = state.selectedSeasons.reduce((total, id) => total + state.customMembers[id].length, 0);
+      $("#selected-count").textContent = `${selectedCount} mùa`;
+      $("#selected-detail").textContent = `${selectedMembers + customCount} Anh Trai có sẵn`;
+      $("#start-button").disabled = selectedCount === 0;
+    }
+
+    function photoUrl(photo) {
+      return photo.startsWith("assets/") ? photo : `assets/${photo}`;
+    }
+
+    function renderMemberCards(ids, selectedIds, limit) {
+      const members = memberMap();
+      const selected = new Set(selectedIds);
+      return ids.map((id) => {
+        const member = members.get(id);
+        if (!member) return "";
+        const isSelected = selected.has(id);
+        const isDisabled = !isSelected && selected.size >= limit;
+        const image = member.photo || member.imageUrl
+          ? `<img src="${escapeHtml(member.photo ? photoUrl(member.photo) : member.imageUrl)}" alt="${escapeHtml(member.name)}" loading="lazy">`
+          : `<span class="member-placeholder" aria-hidden="true">${escapeHtml(initials(member.name))}</span>`;
+        return `<button type="button" class="round-member${isSelected ? " selected" : ""}" data-pick-id="${escapeHtml(id)}" aria-pressed="${isSelected}" ${isDisabled ? "disabled" : ""}>
+          ${image}<span class="round-member-label">${escapeHtml(member.name)}</span>
+        </button>`;
+      }).join("");
+    }
+
+    function renderPrelim() {
+      const game = state.game;
+      const board = game.boards[game.boardIndex] || [];
+      const required = getRequiredPicks(board);
+      $("#prelim-round-label").textContent = `Vòng sơ tuyển ${game.round}/3`;
+      $("#prelim-board-label").textContent = `${game.boardIndex + 1} / ${game.boards.length} lượt`;
+      $("#prelim-title").textContent = board.length === 9 ? "9 Anh Trai, chọn 3" : `${board.length} Anh Trai, chọn ${required}`;
+      $("#prelim-copy").textContent = `Chọn ${required} Anh Trai bạn muốn đưa tiếp vào vòng sau.`;
+      $("#round-grid").innerHTML = renderMemberCards(board, game.boardSelection, required);
+      $("#prelim-selection-count").innerHTML = `<strong>${game.boardSelection.length} / ${required}</strong> đã chọn`;
+      $("#prelim-next").disabled = game.boardSelection.length !== required;
+      $("#prelim-next").textContent = game.boardIndex + 1 < game.boards.length ? "Tiếp theo →" : "Hoàn thành vòng →";
+    }
+
+    function maxComparisons(count) {
+      if (count < 2) return 0;
+      const left = Math.floor(count / 2);
+      const right = count - left;
+      return maxComparisons(left) + maxComparisons(right) + count - 1;
+    }
+
+    function settleMerge() {
+      const sort = state.game.sort;
+      while (sort.runs.length > 1) {
+        if (!sort.merge) {
+          const pairCount = Math.floor(sort.runs.length / 2);
+          if (sort.pairIndex >= pairCount) {
+            if (sort.runs.length % 2) sort.nextRuns.push(sort.runs[sort.runs.length - 1]);
+            sort.runs = sort.nextRuns;
+            sort.nextRuns = [];
+            sort.pairIndex = 0;
+            continue;
+          }
+          sort.merge = {
+            left: sort.runs[sort.pairIndex * 2].slice(),
+            right: sort.runs[sort.pairIndex * 2 + 1].slice(),
+            merged: []
+          };
+        }
+        const merge = sort.merge;
+        if (merge.left.length && merge.right.length) return;
+        merge.merged.push(...merge.left, ...merge.right);
+        sort.nextRuns.push(merge.merged);
+        sort.pairIndex += 1;
+        sort.merge = null;
+      }
+      state.game.rankedIds = sort.runs[0] ? sort.runs[0].slice() : [];
+      state.game.stage = "result";
+    }
+
+    function renderDuel() {
+      if (state.game.stage !== "ranking") return;
+      settleMerge();
+      if (state.game.stage === "result") {
+        renderGame();
+        return;
+      }
+      const sort = state.game.sort;
+      const [leftId, rightId] = [sort.merge.left[0], sort.merge.right[0]];
+      const members = memberMap();
+      const left = members.get(leftId);
+      const right = members.get(rightId);
+      $("#duel-count").textContent = `${sort.comparisons} / tối đa ${maxComparisons(state.game.finalistIds.length)} lượt`;
+      $("#duel-area").innerHTML = [left, right].map((member) =>
+        `<button type="button" class="duel-card" data-winner="${escapeHtml(member.id)}" aria-label="Chọn ${escapeHtml(member.name)}">
+          ${member.photo || member.imageUrl
+            ? `<img class="duel-photo" src="${escapeHtml(member.photo ? photoUrl(member.photo) : member.imageUrl)}" alt="">`
+            : `<span class="duel-initial" aria-hidden="true">${escapeHtml(initials(member.name))}</span>`}
+          <span class="duel-name">${escapeHtml(member.name)}</span>
+        </button>`
+      ).join('<span class="duel-vs" aria-hidden="true">VS</span>');
+      $("#ranking-undo").disabled = sort.history.length === 0;
+    }
+
+    function renderResult() {
+      const game = state.game;
+      const members = memberMap();
+      $("#result-title").value = game.resultTitle || "Top 9 Say Hi của tôi";
+      const rankedMembers = game.rankedIds.map((id, index) => ({
+        id,
+        rank: index + 1,
+        member: members.get(id)
+      })).filter(({ member }) => member);
+      const resultGrid = $("#result-grid");
+      resultGrid.dataset.count = String(rankedMembers.length);
+      resultGrid.innerHTML = rankedMembers.map(({ rank, member }) => {
+        const image = member.photo || member.imageUrl
+          ? `<img src="${escapeHtml(member.photo ? photoUrl(member.photo) : member.imageUrl)}" alt="${escapeHtml(member.name)}" loading="lazy">`
+          : `<span class="result-initial" aria-hidden="true">${escapeHtml(initials(member.name))}</span>`;
+        return `<article class="result-item" data-rank="${rank}"><span class="result-rank">HẠNG ${rank}</span>${image}<div class="result-name">${escapeHtml(member.name)}</div></article>`;
+      }).join("");
+    }
+
+    function renderSteps() {
+      const game = state.game;
+      const active = game.stage === "prelim" ? 1 : game.stage === "ranking" ? 2 : 3;
+      const labels = ["01 · Chọn mùa", "02 · Sơ tuyển", "03 · So sánh", "04 · Kết quả"];
+      $("#game-steps").innerHTML = labels.map((label, index) =>
+        `<div class="game-step${index < active ? " done" : ""}${index === active ? " active" : ""}">${label}</div>`
+      ).join("");
+    }
+
+    function renderGame() {
+      const game = state.game;
+      if (!game) return;
+      renderSteps();
+      $("#game-season-label").textContent = (game.seasonIds || state.selectedSeasons).map(seasonLabel).join(" · ");
+      $("#prelim-stage").hidden = game.stage !== "prelim";
+      $("#ranking-stage").hidden = game.stage !== "ranking";
+      $("#result-stage").hidden = game.stage !== "result";
+      const titles = { prelim: "9 chọn 3", ranking: "So sánh thứ hạng", result: "Kết quả" };
+      $("#game-title").textContent = titles[game.stage];
+      if (game.stage === "prelim") renderPrelim();
+      if (game.stage === "ranking") renderDuel();
+      if (game.stage === "result") renderResult();
+    }
+
+    function render() {
+      renderFilters();
+      renderSeasonCards();
+      $("#selection-screen").hidden = gameStarted;
+      $("#game-screen").hidden = !gameStarted;
+      $("#bottom-bar").hidden = gameStarted;
+      if (gameStarted) renderGame();
+    }
+
+    function toggleSeason(id) {
+      if (state.selectedSeasons.includes(id)) state.selectedSeasons = state.selectedSeasons.filter((seasonId) => seasonId !== id);
+      else state.selectedSeasons.push(id);
+      render();
+      saveState();
+    }
+
+    function toggleRoundPick(id) {
+      const game = state.game;
+      const picks = game.boardSelection;
+      const limit = getRequiredPicks(game.boards[game.boardIndex]);
+      const index = picks.indexOf(id);
+      if (index >= 0) picks.splice(index, 1);
+      else if (picks.length < limit) picks.push(id);
+      renderGame();
+      saveState();
+    }
+
+    function snapshotSort(sort) {
+      return {
+        runs: sort.runs.map((run) => run.slice()),
+        nextRuns: sort.nextRuns.map((run) => run.slice()),
+        pairIndex: sort.pairIndex,
+        merge: sort.merge ? {
+          left: sort.merge.left.slice(),
+          right: sort.merge.right.slice(),
+          merged: sort.merge.merged.slice()
+        } : null,
+        comparisons: sort.comparisons
+      };
+    }
+
+    function chooseDuelWinner(id) {
+      const sort = state.game.sort;
+      const winnerIsLeft = sort.merge.left[0] === id;
+      sort.history.push(snapshotSort(sort));
+      sort.merge.merged.push(winnerIsLeft ? sort.merge.left.shift() : sort.merge.right.shift());
+      sort.comparisons += 1;
+      if (!sort.merge.left.length || !sort.merge.right.length) {
+        sort.merge.merged.push(...sort.merge.left, ...sort.merge.right);
+        sort.nextRuns.push(sort.merge.merged);
+        sort.pairIndex += 1;
+        sort.merge = null;
+      }
+      settleMerge();
+      renderGame();
+      saveState();
+    }
+
+    $("#season-filters").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-filter]");
+      if (!button) return;
+      activeFilter = button.dataset.filter;
+      renderFilters();
+      renderSeasonCards();
+    });
+
+    $("#season-grid").addEventListener("click", (event) => {
+      const card = event.target.closest("[data-season]");
+      if (card) toggleSeason(card.dataset.season);
+    });
+
+    $("#select-all").addEventListener("click", () => {
+      state.selectedSeasons = seasonIds.slice();
+      render();
+      saveState();
+    });
+
+    $("#clear-selection").addEventListener("click", () => {
+      state.selectedSeasons = [];
+      render();
+      saveState();
+    });
+
+    $("#alphabetical-toggle").addEventListener("change", (event) => {
+      alphabetical = event.currentTarget.checked;
+      renderSeasonCards();
+    });
+
+    $("#start-button").addEventListener("click", startGame);
+    $("#back-button").addEventListener("click", () => {
+      gameStarted = false;
+      state.game = null;
+      render();
+      saveState();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    $("#home-link").addEventListener("click", (event) => {
+      event.preventDefault();
+      gameStarted = false;
+      state.game = null;
+      render();
+      saveState();
+    });
+
+    $("#prelim-next").addEventListener("click", () => {
+      const board = state.game.boards[state.game.boardIndex];
+      if (state.game.boardSelection.length !== getRequiredPicks(board)) return;
+      progressGame();
+      renderGame();
+      saveState();
+    });
+
+    $("#round-grid").addEventListener("click", (event) => {
+      const card = event.target.closest("[data-pick-id]");
+      if (card && !card.disabled) toggleRoundPick(card.dataset.pickId);
+    });
+
+    $("#duel-area").addEventListener("click", (event) => {
+      const card = event.target.closest("[data-winner]");
+      if (card && state.game.stage === "ranking") chooseDuelWinner(card.dataset.winner);
+    });
+
+    $("#ranking-undo").addEventListener("click", () => {
+      const sort = state.game.sort;
+      if (!sort.history.length) return;
+      const history = sort.history.slice(0, -1);
+      const snapshot = sort.history[sort.history.length - 1];
+      state.game.sort = { ...snapshot, history };
+      renderGame();
+      saveState();
+    });
+
+    $("#result-title").addEventListener("input", (event) => {
+      if (state.game) state.game.resultTitle = event.currentTarget.value;
+      saveState();
+    });
+
+    $("#restart-button").addEventListener("click", () => {
+      gameStarted = false;
+      state.game = null;
+      render();
+      saveState();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    $("#share-button").addEventListener("click", async () => {
+      const members = memberMap();
+      const game = state.game;
+      const list = game.rankedIds.map((id, index) => `${index + 1}. ${members.get(id)?.name || "Anh Trai"}`).join("\n");
+      const title = $("#result-title").value.trim() || "Top 9 Say Hi của tôi";
+      const text = `${title}\n${game.seasonIds.map(seasonLabel).join(" + ")}\n${list}`;
+      try {
+        if (navigator.share) await navigator.share({ title, text });
+        else if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          showToast("Đã sao chép Top 9 vào clipboard.");
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.append(textarea);
+          textarea.select();
+          const copied = document.execCommand("copy");
+          textarea.remove();
+          if (!copied) throw new Error("Trình duyệt từ chối sao chép");
+          showToast("Đã sao chép Top 9 vào clipboard.");
+        }
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        console.error("Không thể chia sẻ Top 9.", error);
+        showToast("Không thể chia sẻ tự động. Hãy thử lại hoặc chụp màn hình bảng xếp hạng.");
+      }
+    });
+
+    loadState();
+    render();
+  </script>
+</body>
+</html>
